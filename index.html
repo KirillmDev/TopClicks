@@ -51,27 +51,44 @@
     document.getElementById('counter').innerText = 'Клики: ' + counter;
   }
 
-  // Загрузка сохраненных топ-кликов из localStorage при загрузке страницы
-  window.onload = function() {
-    const savedScores = localStorage.getItem('topScores');
-    if (savedScores) {
-      topScores = JSON.parse(savedScores);
-      updateTopScores();
-    }
-  };
-
-  // Сохранение результата в топе кликов
+  // Сохранение результата на сервере
   function saveScore() {
     const name = prompt("Введите ваше имя:");
     if (name) {
-      topScores.push({ name: name, score: counter });
-      topScores.sort((a, b) => b.score - a.score);
-      if (topScores.length > 5) topScores.pop(); // Оставляем только 5 лучших
-      updateTopScores();
-      localStorage.setItem('topScores', JSON.stringify(topScores)); // Сохранение в localStorage
+      const data = { name: name, score: counter };
+
+      fetch('http://localhost:3000/api/save-score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+        .then(response => response.json())
+        .then(updatedScores => {
+          topScores = updatedScores;
+          updateTopScores();
+        })
+        .catch(error => {
+          console.error('Ошибка при сохранении результата:', error);
+        });
+
       counter = 0;
       document.getElementById('counter').innerText = 'Клики: 0';
     }
+  }
+
+  // Загрузка топа кликов с сервера
+  function loadTopScores() {
+    fetch('http://localhost:3000/api/get-scores')
+      .then(response => response.json())
+      .then(scores => {
+        topScores = scores;
+        updateTopScores();
+      })
+      .catch(error => {
+        console.error('Ошибка при загрузке топа:', error);
+      });
   }
 
   // Функция для обновления отображения топа кликов
@@ -85,11 +102,14 @@
     });
   }
 
-  // Добавить кнопку для сохранения результатов
+  // Добавить кнопку для сохранения результата
   const saveBtn = document.createElement('button');
   saveBtn.innerText = 'Сохранить Результат';
   saveBtn.onclick = saveScore;
   document.body.appendChild(saveBtn);
+
+  // Загрузить топы при старте
+  window.onload = loadTopScores;
 </script>
 
 </body>
