@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    #clickBtn {
+      padding: 20px;
+      font-size: 20px;
+      cursor: pointer;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #clickBtn:hover {
+      background-color: #218838;
+    }
+    #counter {
+      font-size: 24px;
+      margin: 20px;
+    }
+    #topScores {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Кликер Игра</h1>
+<p>Нажимайте на кнопку как можно больше раз!</p>
+<button id="clickBtn" onclick="incrementCounter()">Кликни меня!</button>
+<div id="counter">Клики: 0</div>
+
+<h2>Топ Кликов</h2>
+<ul id="topScores"></ul>
+
+<script>
+  let counter = 0;
+  let topScores = [];
+
+  // Функция для увеличения счётчика при клике
+  function incrementCounter() {
+    counter++;
+    document.getElementById('counter').innerText = 'Клики: ' + counter;
+  }
+
+  // Загрузка сохраненных топ-кликов из localStorage при загрузке страницы
+  window.onload = function() {
+    const savedScores = localStorage.getItem('topScores');
+    if (savedScores) {
+      topScores = JSON.parse(savedScores);
+      updateTopScores();
+    }
+  };
+
+  // Сохранение результата в топе кликов
+  function saveScore() {
+    const name = prompt("Введите ваше имя:");
+    if (name) {
+      topScores.push({ name: name, score: counter });
+      topScores.sort((a, b) => b.score - a.score);
+      if (topScores.length > 5) topScores.pop(); // Оставляем только 5 лучших
+      updateTopScores();
+      localStorage.setItem('topScores', JSON.stringify(topScores)); // Сохранение в localStorage
+      counter = 0;
+      document.getElementById('counter').innerText = 'Клики: 0';
+    }
+  }
+
+  // Функция для обновления отображения топа кликов
+  function updateTopScores() {
+    const topScoresList = document.getElementById('topScores');
+    topScoresList.innerHTML = '';
+    topScores.forEach((score, index) => {
+      const listItem = document.createElement('li');
+      listItem.innerText = `${index + 1}. ${score.name}: ${score.score}`;
+      topScoresList.appendChild(listItem);
+    });
+  }
+
+  // Добавить кнопку для сохранения результатов
+  const saveBtn = document.createElement('button');
+  saveBtn.innerText = 'Сохранить Результат';
+  saveBtn.onclick = saveScore;
+  document.body.appendChild(saveBtn);
+</script>
+
+</body>
+</html>
